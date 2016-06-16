@@ -631,7 +631,7 @@ int main(void)
  
   // ------ Main loop ------ //
   uint8_t btn;
-	while(game_is_over() == FALSE) 
+  while(game_is_over() == FALSE) 
   {
     btn = get_btn_pressed();
     if(btn <= 8)
@@ -654,5 +654,5 @@ int main(void)
   sei();
   while(TRUE){sleep_cpu();}
   
-	return 0;
+  return 0;
 }
