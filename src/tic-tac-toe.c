@@ -8,8 +8,8 @@
  * 
  * Uses an Atmega328P for I/O but can probably be modified to use other MCUs.
  * The game "board" is represented by red and green LEDs arranged in a grid. 
- * A player inputs their move with a button matrix, the buttons corresponding
- * to the appropriate place.
+ * A player inputs their move with a button matrix. The buttons correspond
+ * to a location on the board.
  *
  * For more circuit/layout details see the appropriate files.
  */
@@ -22,8 +22,8 @@
 #include <avr/sleep.h>              // sleep modes
 
 #define  LED_PORT       PORTC       // some defines
-#define  LED_DDR        DDRC
-#define  CPU_PORT       PORTC       // for readability
+#define  LED_DDR        DDRC        // for readability
+#define  CPU_PORT       PORTC
 #define  CPU_PIN        PINC
 #define  CPU_DDR        DDRC
 #define  BTN_PORT       PORTD
@@ -74,8 +74,13 @@ uint8_t winner = 0;
  *       drive appropriate LED for the player
  *
  * For the player LEDs:
- *   if game has a winner / tie
- *     drive LED(s) for the winner / tie
+ *   if game has a winner
+ *     drive LED for the winner
+ *   else if game has a tie
+ *     count with a variable 
+ *     when the limit is reached toggle the LEDs state
+ *     depending on the LED state
+ *       drive the LED for one player 
  *   else
  *     count with a variable 
  *     when the limit is reached toggle the LEDs state
@@ -176,17 +181,29 @@ ISR(TIMER2_OVF_vect)
     }
     else
     {
-      LED_PORT |= 1;
-      _delay_us(LED_DELAY);
-      LED_PORT &= ~(1);
-      LED_PORT |= 0x10;
-      _delay_us(LED_DELAY);
-      LED_PORT &= ~(0x10);
+      if(++count >= 46)  // ~377 ms
+      {
+        count = 0;
+        LED_state ^= 1;
+      }
+      
+      if(LED_state == 1) 
+      {
+        LED_PORT |= 0x10;
+        _delay_us(LED_DELAY);
+        LED_PORT &= ~0x10;
+      }
+      else
+      {
+        LED_PORT |= 1;
+        _delay_us(LED_DELAY);
+        LED_PORT &= ~1;
+      }
     }
   }
   else   // else blink player turn LED
   {
-    if(++count == 46)  // ~377 ms
+    if(++count >= 46)  // ~377 ms
     {
       count = 0;
       LED_state ^= 1;
