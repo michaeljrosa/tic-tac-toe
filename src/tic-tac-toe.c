@@ -20,6 +20,7 @@
 #include <util/delay.h>             // delay functions
 #include <avr/interrupt.h>          // interrupts
 #include <avr/sleep.h>              // sleep modes
+#include <string.h>
 
 #define  LED_PORT       PORTC       // some defines
 #define  LED_DDR        DDRC        // for readability
@@ -366,12 +367,8 @@ uint8_t game_is_over(void)
 uint8_t * copy_board(void)
 {
   static uint8_t copy[9];
-  uint8_t i;
   
-  for(i = 0; i < 9; i++)
-  {
-    copy[i] = board[i];
-  }
+  memcpy(copy, board, 9);
   
   return copy;
 }
@@ -387,22 +384,22 @@ uint8_t * copy_board(void)
  *  [3][4][5]   -->   [7][4][1]
  *  [6][7][8]         [8][5][2]
  */
-void rotate(uint8_t *board)
+void rotate(uint8_t board[9])
 {
-  uint8_t temp5 = *(board + 5);
-  uint8_t temp8 = *(board + 8);
+  uint8_t temp5 = board[5];
+  uint8_t temp8 = board[8];
   
-  *(board + 8) = *(board + 2);
-  *(board + 5) = *(board + 1);
-  *(board + 2) = *(board + 0);
+  board[8] = board[2];
+  board[5] = board[1];
+  board[2] = board[0];
   
-  *(board + 1) = *(board + 3);
-  *(board)     = *(board + 6);
+  board[1] = board[3];
+  board[0] = board[6];
   
-  *(board + 3) = *(board + 7);
-  *(board + 6) = temp8;
+  board[3] = board[7];
+  board[6] = temp8;
   
-  *(board + 7) = temp5;
+  board[7] = temp5;
 }
 
 
@@ -465,21 +462,21 @@ uint8_t check_wins_or_losses(uint8_t is_computer)
     if(i != 0) rotate(t);
     
     // sides
-    if(*t == 0 && *(t + 1) == b && *(t + 2) == b)
+    if(t[0] == 0 && t[1] == b && t[2] == b)
     {
       if(i == 0) return 0;
       else if(i == 1) return 6;
       else if(i == 2) return 8;
       else return 2;
     }
-    else if(*t == b  && *(t + 1) == 0 && *(t + 2) == b)
+    else if(t[0] == b  && t[1] == 0 && t[2] == b)
     {
       if(i == 0) return 1;
       else if(i == 1) return 3;
       else if(i == 2) return 7;
       else return 5; 
     } 
-    else if(*t == b && *(t + 1) == b && *(t + 2) == 0)
+    else if(t[0] == b && t[1] == b && t[2] == 0)
     {
       if(i == 0) return 2;
       else if(i == 1) return 0;
@@ -488,23 +485,23 @@ uint8_t check_wins_or_losses(uint8_t is_computer)
     }
     
     // middles
-    else if(*(t +1) == b && *(t + 4) == b && *(t + 7) == 0){
+    else if(*(t +1) == b && t[4] == b && t[7] == 0){
       if(i == 0) return 7;
       else if(i == 1) return 5;
       else if(i == 2) return 1;
       else return 3;
     }
-    else if(*(t + 1) == b && *(t + 4) == 0 && *(t + 7) == b)
+    else if(t[1] == b && t[4] == 0 && t[7] == b)
       return 4;
     
     // diagonals
-    else if(*t == b && *(t + 4) == b && *(t + 8) == 0){
+    else if(t[0] == b && t[4] == b && t[8] == 0){
       if(i == 0) return 8;
       else if(i == 1) return 2;
       else if(i == 2) return 0;
       else return 6;
     }
-    else if(*t == b && *(t + 4) == 0 && *(t + 8) == b)
+    else if(t[0] == b && t[4] == 0 && t[8] == b)
       return 4;
   }
   
@@ -531,16 +528,16 @@ uint8_t check_fork_states(uint8_t is_computer)
   {
     if(i != 0) rotate(t);
     
-    if(*(t + 2) == 0 && *(t + 4) == b && *(t + 6) == 0 &&
-       *(t + 7) == 0 && *(t + 8) == b)
+    if(t[2] == 0 && t[4] == b && t[6] == 0 &&
+       t[7] == 0 && t[8] == b)
     {
       if(i == 0) return 6;
       else if(i == 1) return 8;
       else if(i == 2) return 2;
       else return 0;
     }
-    else if(*t == b && *(t + 3) == 0 && *(t + 6) == 0 &&
-            *(t + 7) == 0 && *(t + 8) == b){
+    else if(t[0] == b && t[3] == 0 && t[6] == 0 &&
+            t[7] == 0 && t[8] == b){
       if(is_computer)
       {
         if(i == 0) return 6;
